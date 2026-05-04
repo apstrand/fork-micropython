@@ -9,3 +9,6 @@ This board has multiple variants available:
   "C5 WiFi/BLE" variant.
 * If your board has an external ESP32-C6 coprocessor for WiFi and BLE then choose the
   "C6 WiFi/BLE" variant.
+
+When building locally, use ESP-IDF v5.5.4 or newer. Older 5.5.x builds can
+finish successfully but produce firmware that crashes during boot.

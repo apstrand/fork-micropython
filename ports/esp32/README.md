@@ -53,7 +53,9 @@ build environment and toolchains needed to build the firmware.
 
 The ESP-IDF changes quickly and MicroPython only supports certain versions. The
 current recommended version of ESP-IDF for MicroPython is v5.5.1. MicroPython
-also supports v5.3, v5.4, v5.4.1 and v5.4.2.
+also supports v5.3, v5.4, v5.4.1 and v5.4.2. If you are building for ESP32-P4,
+use ESP-IDF v5.5.4 or newer; older 5.5.x builds can complete successfully but
+produce firmware that crashes during boot.
 
 <!-- Important: If updating the above, please also update:
      * IDF_OLDEST_VER & IDF_NEWEST_VER in .github/workflows/port_esp32.yml
@@ -80,7 +82,8 @@ To check out a copy of the IDF use git clone:
 $ git clone -b v5.5.1 --recursive https://github.com/espressif/esp-idf.git
 ```
 
-You can replace `v5.5.1` with any other supported version.
+You can replace `v5.5.1` with any other supported version. For ESP32-P4, use
+`v5.5.4` or newer.
 (You don't need a full recursive clone; see the `ci_esp32_setup` function in
 `tools/ci.sh` in this repository for more detailed set-up commands.)
 
@@ -92,6 +95,8 @@ $ cd esp-idf
 $ git checkout v5.5.1
 $ git submodule update --init --recursive
 ```
+
+For ESP32-P4, use `git checkout v5.5.4` (or newer) before building.
 
 After you've cloned and checked out the IDF to the correct version, run the
 `install.sh` script:

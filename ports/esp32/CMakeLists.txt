@@ -42,6 +42,22 @@ else()
     include(${MICROPY_BOARD_DIR}/mpconfigvariant_${MICROPY_BOARD_VARIANT}.cmake)
 endif()
 
+# ESP32-P4 builds can complete with older ESP-IDF 5.5.x versions, but the
+# resulting firmware can crash during boot. Fail early so the mismatch is clear
+# before a firmware image is flashed.
+if(IDF_TARGET STREQUAL "esp32p4" AND DEFINED ENV{IDF_PATH})
+    execute_process(
+        COMMAND git -C $ENV{IDF_PATH} describe --tags --always
+        OUTPUT_VARIABLE MICROPY_IDF_VERSION_RAW
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    string(REGEX REPLACE "^v?([0-9]+\\.[0-9]+\\.[0-9]+).*$" "\\1" MICROPY_IDF_VERSION "${MICROPY_IDF_VERSION_RAW}")
+    if(MICROPY_IDF_VERSION VERSION_LESS "5.5.4")
+        message(FATAL_ERROR "ESP32-P4 builds require ESP-IDF v5.5.4 or newer. Current ESP-IDF version is ${MICROPY_IDF_VERSION_RAW}.")
+    endif()
+endif()
+
 # Set the frozen manifest file. Note if MICROPY_FROZEN_MANIFEST is set from the cmake
 # command line, then it will override the default and any manifest set by the board.
 if (MICROPY_USER_FROZEN_MANIFEST)
