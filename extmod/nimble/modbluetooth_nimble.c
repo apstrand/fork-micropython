@@ -581,12 +581,10 @@ int mp_bluetooth_nimble_port_shutdown(void) {
 void nimble_reset_gatts_bss(void) {
     // NimBLE assumes that service registration only ever happens once, so
     // we need to reset service registration state from a previous stack startup.
-    // These variables are defined in ble_hs.c and are only ever incremented
-    // (during service registration) and never reset.
+    // These counters are only ever incremented during service registration and
+    // never reset. Depending on the NimBLE configuration they may be exported
+    // symbols or macros backed by a state struct, so avoid redeclaring them here.
     // See https://github.com/apache/mynewt-nimble/issues/896
-    extern uint16_t ble_hs_max_attrs;
-    extern uint16_t ble_hs_max_services;
-    extern uint16_t ble_hs_max_client_configs;
     ble_hs_max_attrs = 0;
     ble_hs_max_services = 0;
     ble_hs_max_client_configs = 0;
