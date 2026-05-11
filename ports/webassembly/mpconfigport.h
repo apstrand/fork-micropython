@@ -68,10 +68,12 @@
 
 #ifndef MICROPY_PY_JS
 #define MICROPY_PY_JS (MICROPY_CONFIG_ROM_LEVEL_AT_LEAST_EXTRA_FEATURES)
+#define MICROPY_PY_MICROPYTHON_WASM (1)
 #endif
 
 #ifndef MICROPY_PY_JSFFI
 #define MICROPY_PY_JSFFI (MICROPY_CONFIG_ROM_LEVEL_AT_LEAST_EXTRA_FEATURES)
+#define MICROPY_PY_MICROPYTHON_WASM (1)
 #endif
 
 // Whether the VM will periodically call mp_js_hook(), which checks for

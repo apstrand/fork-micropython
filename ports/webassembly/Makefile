@@ -110,6 +110,7 @@ SRC_C += \
 	lexer_dedent.c \
 	main.c \
 	modjs.c \
+        modwebwasm.c \
 	modjsffi.c \
 	mphalport.c \
 	objjsproxy.c \

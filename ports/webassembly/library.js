@@ -72,4 +72,15 @@ mergeInto(LibraryManager.library, {
 
     mp_js_random_u32: () =>
         globalThis.crypto.getRandomValues(new Uint32Array(1))[0],
+
+    mp_js_display: (data_ptr, mime_type_ptr) => {
+        const data = UTF8ToString(data_ptr);
+        const mime_type = UTF8ToString(mime_type_ptr);
+        // This expects the environment (e.g. the web worker) to have defined an onDisplay handler
+        if (typeof onDisplay === "function") {
+            onDisplay(data, mime_type);
+        } else {
+            console.log("Display [" + mime_type + "]:", data);
+        }
+    },
 });
