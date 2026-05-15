@@ -167,7 +167,7 @@ void mp_js_do_exec_async(const char *src, size_t len, uint32_t *out) {
     mp_compile_allow_top_level_await = false;
 }
 
-// Check if the given code string is a single expression, multiple statements, 
+// Check if the given code string is a single expression, multiple statements,
 // or has a syntax error.
 // Returns: 1 for SINGLE_INPUT (expression), 2 for FILE_INPUT (statements), 0 for error.
 int mp_js_parse_input_kind(const char *src, size_t len) {
@@ -193,6 +193,12 @@ int mp_js_parse_input_kind(const char *src, size_t len) {
     }
     external_call_depth_dec();
     return kind;
+}
+
+// Return the globals dictionary as a JavaScript object (handle).
+void mp_js_get_globals(uint32_t *out) {
+    mp_obj_t dict = MP_OBJ_FROM_PTR(mp_globals_get());
+    proxy_convert_mp_to_js_obj_cside(dict, out);
 }
 
 void mp_js_repl_init(void) {
