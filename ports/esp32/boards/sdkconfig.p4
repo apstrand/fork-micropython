@@ -1,4 +1,5 @@
-# Select the minimum chip revision to cover all possible boards.
+# Rev 1.0 chip: requires <v3 hardware paths and _xesppie ISA.
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
 CONFIG_ESP32P4_REV_MIN_0=y
 
 # Flash
@@ -11,10 +12,13 @@ CONFIG_SPIRAM_MEMTEST=
 CONFIG_SPIRAM_IGNORE_NOTFOUND=y
 CONFIG_MBEDTLS_DEFAULT_MEM_ALLOC=y
 CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=50768
+CONFIG_SPIRAM_SPEED_200M=y
 
 # ULP: not fixed
 CONFIG_SOC_ULP_SUPPORTED=n
 CONFIG_ULP_COPROC_ENABLED=n
 CONFIG_ULP_COPROC_TYPE_FSM=n
 
-CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+# DSI display: ISR must be IRAM-safe when PM (DFS) is enabled so the
+# DSI bridge ISR can still fire while flash/cache may be disabled.
+CONFIG_LCD_DSI_ISR_CACHE_SAFE=y
