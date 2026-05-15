@@ -167,6 +167,34 @@ void mp_js_do_exec_async(const char *src, size_t len, uint32_t *out) {
     mp_compile_allow_top_level_await = false;
 }
 
+// Check if the given code string is a single expression, multiple statements, 
+// or has a syntax error.
+// Returns: 1 for SINGLE_INPUT (expression), 2 for FILE_INPUT (statements), 0 for error.
+int mp_js_parse_input_kind(const char *src, size_t len) {
+    external_call_depth_inc();
+    int kind = 0;
+    nlr_buf_t nlr;
+    if (nlr_push(&nlr) == 0) {
+        mp_lexer_t *lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
+        mp_parse(lex, MP_PARSE_SINGLE_INPUT);
+        kind = 1;
+        nlr_pop();
+    } else {
+        // Not a single expression, try file input
+        if (nlr_push(&nlr) == 0) {
+            mp_lexer_t *lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
+            mp_parse(lex, MP_PARSE_FILE_INPUT);
+            kind = 2;
+            nlr_pop();
+        } else {
+            // Syntax error in both cases
+            kind = 0;
+        }
+    }
+    external_call_depth_dec();
+    return kind;
+}
+
 void mp_js_repl_init(void) {
     pyexec_event_repl_init();
 }
