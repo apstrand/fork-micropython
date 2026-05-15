@@ -144,16 +144,31 @@ void mp_js_do_import(const char *name, uint32_t *out) {
 
 void mp_js_do_exec(const char *src, size_t len, uint32_t *out) {
     external_call_depth_inc();
-    mp_parse_input_kind_t input_kind = MP_PARSE_FILE_INPUT;
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
+        // Try parsing as a single expression first to get a return value.
+        // If it fails, fall back to file input (statements).
         mp_lexer_t *lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
         qstr source_name = lex->source_name;
-        mp_parse_tree_t parse_tree = mp_parse(lex, input_kind);
-        mp_obj_t module_fun = mp_compile(&parse_tree, source_name, false);
-        mp_obj_t ret = mp_call_function_0(module_fun);
+        mp_parse_tree_t parse_tree;
+
+        // Try parsing as expression first (returns value)
+        nlr_buf_t nlr_eval;
+        if (nlr_push(&nlr_eval) == 0) {
+            parse_tree = mp_parse(lex, MP_PARSE_EVAL_INPUT);
+            nlr_pop();
+            mp_obj_t module_fun = mp_compile(&parse_tree, source_name, true);
+            mp_obj_t ret = mp_call_function_0(module_fun);
+            proxy_convert_mp_to_js_obj_cside(ret, out);
+        } else {
+            // Fallback to file input (statements, returns None)
+            lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
+            parse_tree = mp_parse(lex, MP_PARSE_FILE_INPUT);
+            mp_obj_t module_fun = mp_compile(&parse_tree, source_name, false);
+            mp_obj_t ret = mp_call_function_0(module_fun);
+            proxy_convert_mp_to_js_obj_cside(ret, out);
+        }
         nlr_pop();
-        proxy_convert_mp_to_js_obj_cside(ret, out);
     } else {
         // uncaught exception
         proxy_convert_mp_to_js_exc_cside(nlr.ret_val, out);
@@ -176,20 +191,14 @@ int mp_js_parse_input_kind(const char *src, size_t len) {
     nlr_buf_t nlr;
     if (nlr_push(&nlr) == 0) {
         mp_lexer_t *lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
-        mp_parse(lex, MP_PARSE_SINGLE_INPUT);
+        mp_parse(lex, MP_PARSE_EVAL_INPUT);
         kind = 1;
         nlr_pop();
-    } else {
-        // Not a single expression, try file input
-        if (nlr_push(&nlr) == 0) {
-            mp_lexer_t *lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
-            mp_parse(lex, MP_PARSE_FILE_INPUT);
-            kind = 2;
-            nlr_pop();
-        } else {
-            // Syntax error in both cases
-            kind = 0;
-        }
+    } else if (nlr_push(&nlr) == 0) {
+        mp_lexer_t *lex = mp_lexer_new_from_str_len_dedent(MP_QSTR__lt_stdin_gt_, src, len, 0);
+        mp_parse(lex, MP_PARSE_FILE_INPUT);
+        kind = 2;
+        nlr_pop();
     }
     external_call_depth_dec();
     return kind;
